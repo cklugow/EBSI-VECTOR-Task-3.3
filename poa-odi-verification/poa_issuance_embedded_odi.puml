@@ -1,0 +1,13 @@
+```plantuml
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+"Issuer Wallet" -> "Issuer Wallet": Create ODI VP
+"Issuer Wallet" -> "Issuer Wallet": Create PoA VC Draft and attach\nODI VP using `evidence` field
+"Issuer Wallet" <-> "Holder Wallet": Issue PoA via auth or pre-auth interaction
+
+@enduml
+
+```

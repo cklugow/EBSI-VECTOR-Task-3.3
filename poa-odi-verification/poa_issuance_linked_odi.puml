@@ -1,0 +1,13 @@
+```plantuml
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+"Issuer Wallet" -> "Issuer Wallet": Download ODI VP and calculate digest
+"Issuer Wallet" -> "Issuer Wallet": Create PoA VC Draft and link ODI VP with the\ndigest property using `evidence` field
+"Issuer Wallet" <-> "Holder Wallet": Issue PoA via auth or pre-auth interaction
+
+@enduml
+
+```
