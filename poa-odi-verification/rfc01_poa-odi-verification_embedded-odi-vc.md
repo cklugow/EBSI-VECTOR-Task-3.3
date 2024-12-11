@@ -21,9 +21,7 @@ Last updated: 2024-11-20
 
 ## Overview
 
-Power of Attorney (PoA) was introduced to suit the representation purpose. In order to achieve this it needs to be
-coupled with the organization for which the Organizational Digital Identifier is used. In practice, a company nominee should be able to present
-with the PoA credential along with ODI so that the verifier can check not only the PoA validity but also the validity of the ODI and the link between these two.
+Power of Attorney (PoA) VC was introduced to meet the need where somone needs to act as an authorized representative for a company. In order to achieve this, the PoA VC needs to be coupled with the organization for which the PoA holder is authorized to represent. In practice, a company nominee should be able to present, along with the PoA credential, the Organisation Digital Identifier (ODI) credential held by the company's director so that the verifier can check not only the PoA validity but also the validity of the ODI and the link between these two.
 
 ## Credential schemas
 
@@ -106,6 +104,7 @@ Before PoA gets issued the issuer wallet needs to first check if a valid ODI VC 
 
 [puml diagram](poa_issuance_embedded_odi.puml)
 
+will we implement the below ??
 ## Embedding ODI as link
 
 PoA schema extends the base [EBSI Attestation schema](https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/0xeb6d8131264327f3cbc5ddba9c69cb9afd34732b3b787e4b3e3507a25d3079e9)
