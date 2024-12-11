@@ -28,22 +28,22 @@ with the PoA credential along with ODI so that the verifier can check not only t
 ## Credential schemas
 
 ### ODI
-Issued by a Business Registry (EBSI RTAO/TAO) issuer to a specific Company (EBSI TI). The subject contains the company DID.
+Issued by a Business Registry (EBSI RTAO/TAO) issuer to a specific Company. The company can be the owner of an enterprise or a personal wallet.  The subject contains the company DID.
 
 Schema:
 https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/zFMNrfecxyCEaLgpusf9CP5aq651BpWUV4BM9x8KXxzNY
 
 ### PoA
-Issued by a Company (EBSI TI) to a natural person. The subject contains natural person's DID (did:key).
+Issued by a Company to a natural person. The subject contains natural person's DID (did:key).
 
 Schema:
 https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/z2sbTT23X2zfsdMCPFMC7GiUwyHE91Lg9BpeEA5uqtT9s
 
-## Embedding ODI as VP
+## Embedding ODI VC
 
 PoA schema extends the base [EBSI Attestation schema](https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/0xeb6d8131264327f3cbc5ddba9c69cb9afd34732b3b787e4b3e3507a25d3079e9)
 which defines the `evidence` property (see the [VC DM specification](https://www.w3.org/TR/vc-data-model-2.0/#evidence) for more details). This field will be used to embed a Verifiable
-Presentation of the ODI credential.
+Attestation of the ODI credential.
 
 ### Prerequisites
 
@@ -51,10 +51,9 @@ The wallet needs to hold a valid ODI verifiable credential.
 
 ### PoA Issuance
 
-Before PoA gets issued the issuer wallet needs to first create a verifiable presentation of the ODI. The ODI VP will get included in the PoA draft and just after that the issuance interaction
-may begin.
+Before PoA gets issued the issuer wallet needs to first check if a valid ODI VC exists in its storage. The ODI VC will get included in the PoA draft and just after that the issuance interaction may begin.
 
-#### Example of PoA VC with ODI VP embedded:
+#### Example of PoA VC with ODI VC embedded:
 ```json
 {
   "@context": [
@@ -85,7 +84,7 @@ may begin.
   "id": "urn:uuid:f1464e6a-c794-4546-a33d-163e482bf02f",
   "issuanceDate": "2024-11-26T15:24:05.394Z",
   "issued": "2024-11-26T15:24:05.394Z",
-  "issuer": "did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf",
+  "issuer": "did:key:zBhBLmYmyihtomRdJJNEKzbPj51o4a3GYFeZoRHSABKUwqdjiQPY2g3mGSNj8hkg1897eBinpqHQNw9rVh69CvC95SkUnkND2TqP6RXr8vNjiESUmAwXY81BRB4LSZJ2Dg1Ud7PF8X5n8ZTbreoFdZkGvhi6AbboYgFzue9QCR8QSP27UmV5YxC",
   "type": [
     "VerifiableCredential",
     "VerifiableAuthorisation",
@@ -95,9 +94,8 @@ may begin.
   "validUntil": "2024-12-26T15:24:05.394Z",
   "evidence": [{
     "id": "urn:uuid:ad30da7b-a1cb-424f-b19a-efd458a1f865",
-    "type": ["EmbeddedVerifiablePresentation", "OrganizationalDigitalIdentifier"],
-    "name": "ACME, Inc",
-    "vp": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp......kWRIKcFKwt4XR2nxI9GsqxRx9iCInkk0Pz6WPg"
+    "type": "RepresentativeDelegation", 
+    "jwt": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp......kWRIKcFKwt4XR2nxI9GsqxRx9iCInkk0Pz6WPg"
   }]
 }
 ```
