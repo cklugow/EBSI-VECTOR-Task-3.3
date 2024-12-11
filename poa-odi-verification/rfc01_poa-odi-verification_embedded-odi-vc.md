@@ -42,8 +42,9 @@ https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/z2sbTT23X2zfsdMCPF
 ## Embedding ODI VC
 
 PoA schema extends the base [EBSI Attestation schema](https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/0xeb6d8131264327f3cbc5ddba9c69cb9afd34732b3b787e4b3e3507a25d3079e9)
-which defines the `evidence` property (see the [VC DM specification](https://www.w3.org/TR/vc-data-model-2.0/#evidence) for more details). This field will be used to embed a Verifiable
-Attestation of the ODI credential.
+which defines the `evidence` property (see the [VC DM specification](https://www.w3.org/TR/vc-data-model-2.0/#evidence) for more details). This field will be used to embed a Verifiable Attestation of the ODI credential.
+
+The embeded PoA VC schema is in accordance with the EBSI's suggested [Authorisation Delegation](https://www.npmjs.com/package/@cef-ebsi/vcdm2.0-delegated-authorisation-schema?activeTab=code) schema
 
 ### Prerequisites
 
