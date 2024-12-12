@@ -166,6 +166,7 @@ When requesting the POA the requester should also optionally request the ODI. Us
   "@context": [
       "https://www.w3.org/ns/credentials/v2"
   ],
+  "type": ["VerifiablePresentation"],
   "verifiableCredential": [{
     "@context": [
       "https://www.w3.org/ns/credentials/v2"
