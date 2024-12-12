@@ -1,4 +1,4 @@
-# RFC: Embedded ODI in PoA
+# RFC: Including ODI and PoA in VC
 
 ### Authors
 
@@ -39,148 +39,179 @@ Issued by a Company (EBSI TI) to a natural person. The subject contains natural 
 Schema:
 https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/z2sbTT23X2zfsdMCPFMC7GiUwyHE91Lg9BpeEA5uqtT9s
 
-## Embedding ODI as VP
-
-PoA schema extends the base [EBSI Attestation schema](https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/0xeb6d8131264327f3cbc5ddba9c69cb9afd34732b3b787e4b3e3507a25d3079e9)
-which defines the `evidence` property (see the [VC DM specification](https://www.w3.org/TR/vc-data-model-2.0/#evidence) for more details). This field will be used to embed a Verifiable
-Presentation of the ODI credential.
 
 ### Prerequisites
 
-The wallet needs to hold a valid ODI verifiable credential.
+The wallet needs to hold a valid ODI and POA verifiable credentials.
 
-### PoA Issuance
+## Include ODI when presenting POA
 
-Before PoA gets issued the issuer wallet needs to first create a verifiable presentation of the ODI. The ODI VP will get included in the PoA draft and just after that the issuance interaction
-may begin.
-
-#### Example of PoA VC with ODI VP embedded:
-```json
-{
-  "@context": [
-    "https://www.w3.org/2018/credentials/v1"
-  ],
-  "credentialSchema": {
-    "id": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/z2sbTT23X2zfsdMCPFMC7GiUwyHE91Lg9BpeEA5uqtT9s",
-    "type": "FullJsonSchemaValidator2021"
-  },
-  "credentialStatus": {
-    "id": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0#0",
-    "statusListCredential": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0",
-    "statusListIndex": "0",
-    "statusPurpose": "revocation",
-    "type": "StatusList2021Entry"
-  },
-  "credentialSubject": {
-    "dateOfBirth": "1979-11-11",
-    "familyName": "YOGI",
-    "firstName": "BEAR",
-    "id": "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9Kbs5am9syyRGgTSgdrRFLmQeWbFXN9TLw2x5V2HTtZjKgD9iP6iXxAouKZXHHSV3HFnpKX65grm14mx5XJ9daMy22rzRCKxEwjwucNyKibAhaxHX3zEbYyeyPma4e2f4MVD6",
-    "nationality": "SVK",
-    "poaScope": false,
-    "poaType": [
-      "Driving company vehicles"
-    ]
-  },
-  "id": "urn:uuid:f1464e6a-c794-4546-a33d-163e482bf02f",
-  "issuanceDate": "2024-11-26T15:24:05.394Z",
-  "issued": "2024-11-26T15:24:05.394Z",
-  "issuer": "did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf",
-  "type": [
-    "VerifiableCredential",
-    "VerifiableAuthorisation",
-    "PowerOfAttorney"
-  ],
-  "validFrom": "2024-11-26T15:24:05.394Z",
-  "validUntil": "2024-12-26T15:24:05.394Z",
-  "evidence": [{
-    "id": "urn:uuid:ad30da7b-a1cb-424f-b19a-efd458a1f865",
-    "type": ["EmbeddedVerifiablePresentation", "OrganizationalDigitalIdentifier"],
-    "name": "ACME, Inc",
-    "vp": "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDp......kWRIKcFKwt4XR2nxI9GsqxRx9iCInkk0Pz6WPg"
-  }]
-}
-```
-
-#### Process of PoA issuance:
-![poa_issuance_embedded_odi.png](poa_issuance_embedded_odi.png)
-
-[puml diagram](poa_issuance_embedded_odi.puml)
-
-## Embedding ODI as link
-
-PoA schema extends the base [EBSI Attestation schema](https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/0xeb6d8131264327f3cbc5ddba9c69cb9afd34732b3b787e4b3e3507a25d3079e9)
-which defines the `evidence` property (see the [VC DM specification](https://www.w3.org/TR/vc-data-model-2.0/#evidence) for more details). The evidence field will be used
+The Verifiable Presenation will contain both the ODI and POA, the wallet should include the ODI if present when returning a POX.
 to add a link to ODI VP that is published online. The evidence field should also add digest property so that the verifier may check if the linked document is the same.
 
 ### Prerequisites
 
 * ODI VP published via publicly available URL
 
-### PoA Issuance
+### PoA Presentation
 
-Before the issuance process the issuer needs to know the ODI VP public URL. Ideally, the issuer should check if the ODI subject points to the issuer wallet DID to make sure
-the PoA credential is issued with correct ODI VP. The issuer constructs the `evidence` field containing the link to the ODI VP and digest property
-containing a hash of the ODI VP.
+When requesting the POA the requester should also optionally request the ODI. Using a presentation definition similar to below: 
+```json
+{
+  "id": "request-embedded-poa",
+  "input_descriptors": [
+    {
+      "id": "poa",
+      "name": "A POA",
+      "purpose": "Check your Power of Attorney (POA)",
+      "constraints": {
+        "fields": [
+          {
+            "path": [
+              "$.type"
+            ],
+            "filter": {
+              "type": "array",
+              "contains": {
+                "type": "string",
+                "pattern": "PowerOfAttorney"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "oid",
+      "name": "Organizational Digital Identifier (ODI)",
+      "purpose": " ensure the PoA holder may act on behalf of a company",
+      "constraints": {
+        "fields": [
+          {
+            "path": [
+              "$.type"
+            ],
+            "optional": true,
+            "filter": {
+              "type": "array",
+              "contains": {
+                "type": "string",
+                "pattern": "OrganizationalDigitalIdentifier"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+### 
 
-#### Example of PoA VC with ODI VP linked:
+#### Example of PoA VC with an included ODI as JWT:
 
 ```json
 {
   "@context": [
-    "https://www.w3.org/2018/credentials/v1"
+      "https://www.w3.org/2018/credentials/v1"
   ],
-  "credentialSchema": {
-    "id": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/z2sbTT23X2zfsdMCPFMC7GiUwyHE91Lg9BpeEA5uqtT9s",
-    "type": "FullJsonSchemaValidator2021"
+  "type": ["VerifiablePresentation"],
+  "verifiableCredential": [{
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1"
+    ],
+    "credentialSchema": {
+      "id": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/z2sbTT23X2zfsdMCPFMC7GiUwyHE91Lg9BpeEA5uqtT9s",
+      "type": "FullJsonSchemaValidator2021"
+    },
+    "credentialStatus": {
+      "id": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0#0",
+      "statusListCredential": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0",
+      "statusListIndex": "0",
+      "statusPurpose": "revocation",
+      "type": "StatusList2021Entry"
+    },
+    "credentialSubject": {
+      "dateOfBirth": "1979-11-11",
+      "familyName": "YOGI",
+      "firstName": "BEAR",
+      "id": "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9Kbs5am9syyRGgTSgdrRFLmQeWbFXN9TLw2x5V2HTtZjKgD9iP6iXxAouKZXHHSV3HFnpKX65grm14mx5XJ9daMy22rzRCKxEwjwucNyKibAhaxHX3zEbYyeyPma4e2f4MVD6",
+      "nationality": "SVK",
+      "poaScope": false,
+      "poaType": [
+        "Driving company vehicles"
+      ]
+    },
+    "id": "urn:uuid:f1464e6a-c794-4546-a33d-163e482bf02f",
+    "issuanceDate": "2024-11-26T15:24:05.394Z",
+    "issued": "2024-11-26T15:24:05.394Z",
+    "issuer": "did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf",
+    "type": [
+      "VerifiableCredential",
+      "VerifiableAuthorisation",
+      "PowerOfAttorney"
+    ],
+    "validFrom": "2024-11-26T15:24:05.394Z",
+    "validUntil": "2024-12-26T15:24:05.394Z",
   },
-  "credentialStatus": {
-    "id": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0#0",
-    "statusListCredential": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0",
-    "statusListIndex": "0",
-    "statusPurpose": "revocation",
-    "type": "StatusList2021Entry"
-  },
-  "credentialSubject": {
-    "dateOfBirth": "1979-11-11",
-    "familyName": "YOGI",
-    "firstName": "BEAR",
-    "id": "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9Kbs5am9syyRGgTSgdrRFLmQeWbFXN9TLw2x5V2HTtZjKgD9iP6iXxAouKZXHHSV3HFnpKX65grm14mx5XJ9daMy22rzRCKxEwjwucNyKibAhaxHX3zEbYyeyPma4e2f4MVD6",
-    "nationality": "SVK",
-    "poaScope": false,
-    "poaType": [
-      "Driving company vehicles"
-    ]
-  },
-  "id": "urn:uuid:f1464e6a-c794-4546-a33d-163e482bf02f",
-  "issuanceDate": "2024-11-26T15:24:05.394Z",
-  "issued": "2024-11-26T15:24:05.394Z",
-  "issuer": "did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf",
-  "type": [
-    "VerifiableCredential",
-    "VerifiableAuthorisation",
-    "PowerOfAttorney"
-  ],
-  "validFrom": "2024-11-26T15:24:05.394Z",
-  "validUntil": "2024-12-26T15:24:05.394Z",
-  "evidence": [{
-    "id": "https://wallet.dev.triveria.io/api/v1/linked-vp/cd6c7fce-ac09-11ef-a8a2-0a58a9feac02/urn:uuid:d6e49478-a25a-4f56-81c1-4272fae14f32?hl=zQmdE2wDRDBhkxk44PP2hGNhL4PeBDe5sQfXJk6h9DY6tzj",
-    "type": ["LinkedVerifiablePresentation", "OrganizationalDigitalIdentifier"],
-    "name": "ACME, Inc",
-    "digestMultibase": "uELq9FnJ5YLa5iAszyJ518bXcnlc5P7xp1u-5uJRDYKvc"
-  }]
+    "eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDplYnNpOnpvOVY0RkNLOUNpS3VXUU1wdWJNekE0IzB4azBZUzhQWUYxTmFIZkxZRzN4MEZmZ2I3X1JsQ0llb2VwXzZRZTRIelUiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3MzI5OTUzNjMsImlhdCI6MTczMDQwMzM2MywiaXNzIjoiZGlkOmVic2k6em85VjRGQ0s5Q2lLdVdRTXB1Yk16QTQiLCJqdGkiOiJ1cm46dXVpZDpmMjE5MTg2My0xZTcwLTQ5M2EtOWI4NS1iMjBjMGM2ZDQzOWQiLCJuYmYiOjE3MzA0MDMzNjMsInN1YiI6ImRpZDplYnNpOnoyNVpueVc5ZnZpUXJqanJQMXc4RnFHYSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImNyZWRlbnRpYWxTY2hlbWEiOnsiaWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzL3pGTU5yZmVjeHlDRWFMZ3B1c2Y5Q1A1YXE2NTFCcFdVVjRCTTl4OEtYeHpOWSIsInR5cGUiOiJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEifSwiY3JlZGVudGlhbFN0YXR1cyI6eyJpZCI6Imh0dHBzOi8vd2FsbGV0LmRldi50cml2ZXJpYS5pby9hcGkvdjEvaXNzdWVyL2M3YTVmOTk1LTk3NmUtMTFlZi04NzhkLTBhNThhOWZlYWMwMi9zdGF0dXMvMCMwIiwic3RhdHVzTGlzdENyZWRlbnRpYWwiOiJodHRwczovL3dhbGxldC5kZXYudHJpdmVyaWEuaW8vYXBpL3YxL2lzc3Vlci9jN2E1Zjk5NS05NzZlLTExZWYtODc4ZC0wYTU4YTlmZWFjMDIvc3RhdHVzLzAiLCJzdGF0dXNMaXN0SW5kZXgiOiIwIiwic3RhdHVzUHVycG9zZSI6InJldm9jYXRpb24iLCJ0eXBlIjoiU3RhdHVzTGlzdDIwMjFFbnRyeSJ9LCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnoyNVpueVc5ZnZpUXJqanJQMXc4RnFHYSIsImlzc3VpbmdBdXRob3JpdHlOYW1lIjoiUlRBTyIsImlzc3VpbmdDb3VudHJ5IjoiU1ZLIiwibGVnYWxGb3JtIjoiSW5jIiwibGVnYWxOYW1lIjoiQUNNRSJ9LCJpZCI6InVybjp1dWlkOmYyMTkxODYzLTFlNzAtNDkzYS05Yjg1LWIyMGMwYzZkNDM5ZCIsImlzc3VhbmNlRGF0ZSI6IjIwMjQtMTAtMzFUMTk6MzY6MDMuNDQ0WiIsImlzc3VlZCI6IjIwMjQtMTAtMzFUMTk6MzY6MDMuNDQ0WiIsImlzc3VlciI6ImRpZDplYnNpOnpvOVY0RkNLOUNpS3VXUU1wdWJNekE0IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdHRlc3RhdGlvbiIsIk9yZ2FuaXphdGlvbmFsRGlnaXRhbElkZW50aWZpZXIiXSwidmFsaWRGcm9tIjoiMjAyNC0xMC0zMVQxOTozNjowMy40NDRaIiwidmFsaWRVbnRpbCI6IjIwMjQtMTEtMzBUMTk6MzY6MDMuNDQ0WiJ9fQ.HE46Lyy1EJCVsdW9Mi1OzpbI04awrdWC8m7xFpPHKvikA6ORuGR9I1UMUuqcAKxDy28H7jNOFSbM363xaANvfQ"  
+  ]
 }
 ```
 
-See more on the `digestMultibase` at:
-* https://w3c.github.io/vc-data-integrity/vocab/security/vocabulary.html#digestMultibase
-* https://www.w3.org/TR/vc-data-integrity/#dfn-digestmultibase
+#### Example of PoA VC with an included ODI as EnvelopedCredential:
 
-#### Process of PoA issuance:
-
-![poa_issuance_linked_odi.png](poa_issuance_linked_odi.png)
-
-[puml diagram](poa_issuance_linked_odi.puml)
+```json
+{
+  "@context": [
+      "https://www.w3.org/ns/credentials/v2"
+  ],
+  "verifiableCredential": [{
+    "@context": [
+      "https://www.w3.org/ns/credentials/v2"
+    ],
+    "credentialSchema": {
+      "id": "https://api-pilot.ebsi.eu/trusted-schemas-registry/v3/schemas/z2sbTT23X2zfsdMCPFMC7GiUwyHE91Lg9BpeEA5uqtT9s",
+      "type": "FullJsonSchemaValidator2021"
+    },
+    "credentialStatus": {
+      "id": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0#0",
+      "statusListCredential": "https://api-conformance.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf/proxies/0x45f01de57aeff6389c482b93c15f44aa58331bb8274dcefb02893745c2686a9d/status/0",
+      "statusListIndex": "0",
+      "statusPurpose": "revocation",
+      "type": "StatusList2021Entry"
+    },
+    "credentialSubject": {
+      "dateOfBirth": "1979-11-11",
+      "familyName": "YOGI",
+      "firstName": "BEAR",
+      "id": "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9Kbs5am9syyRGgTSgdrRFLmQeWbFXN9TLw2x5V2HTtZjKgD9iP6iXxAouKZXHHSV3HFnpKX65grm14mx5XJ9daMy22rzRCKxEwjwucNyKibAhaxHX3zEbYyeyPma4e2f4MVD6",
+      "nationality": "SVK",
+      "poaScope": false,
+      "poaType": [
+        "Driving company vehicles"
+      ]
+    },
+    "id": "urn:uuid:f1464e6a-c794-4546-a33d-163e482bf02f",
+    "issuanceDate": "2024-11-26T15:24:05.394Z",
+    "issued": "2024-11-26T15:24:05.394Z",
+    "issuer": "did:ebsi:zzhg8kdpKQ1svP7w5hkGZqf",
+    "type": [
+      "VerifiableCredential",
+      "VerifiableAuthorisation",
+      "PowerOfAttorney"
+    ],
+    "validFrom": "2024-11-26T15:24:05.394Z",
+    "validUntil": "2024-12-26T15:24:05.394Z",
+  },
+    {
+      "@context": "https://www.w3.org/ns/credentials/v2",
+      "id": "data:application/vc+jwt,eyJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDplYnNpOnpvOVY0RkNLOUNpS3VXUU1wdWJNekE0IzB4azBZUzhQWUYxTmFIZkxZRzN4MEZmZ2I3X1JsQ0llb2VwXzZRZTRIelUiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3MzI5OTUzNjMsImlhdCI6MTczMDQwMzM2MywiaXNzIjoiZGlkOmVic2k6em85VjRGQ0s5Q2lLdVdRTXB1Yk16QTQiLCJqdGkiOiJ1cm46dXVpZDpmMjE5MTg2My0xZTcwLTQ5M2EtOWI4NS1iMjBjMGM2ZDQzOWQiLCJuYmYiOjE3MzA0MDMzNjMsInN1YiI6ImRpZDplYnNpOnoyNVpueVc5ZnZpUXJqanJQMXc4RnFHYSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImNyZWRlbnRpYWxTY2hlbWEiOnsiaWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzL3pGTU5yZmVjeHlDRWFMZ3B1c2Y5Q1A1YXE2NTFCcFdVVjRCTTl4OEtYeHpOWSIsInR5cGUiOiJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEifSwiY3JlZGVudGlhbFN0YXR1cyI6eyJpZCI6Imh0dHBzOi8vd2FsbGV0LmRldi50cml2ZXJpYS5pby9hcGkvdjEvaXNzdWVyL2M3YTVmOTk1LTk3NmUtMTFlZi04NzhkLTBhNThhOWZlYWMwMi9zdGF0dXMvMCMwIiwic3RhdHVzTGlzdENyZWRlbnRpYWwiOiJodHRwczovL3dhbGxldC5kZXYudHJpdmVyaWEuaW8vYXBpL3YxL2lzc3Vlci9jN2E1Zjk5NS05NzZlLTExZWYtODc4ZC0wYTU4YTlmZWFjMDIvc3RhdHVzLzAiLCJzdGF0dXNMaXN0SW5kZXgiOiIwIiwic3RhdHVzUHVycG9zZSI6InJldm9jYXRpb24iLCJ0eXBlIjoiU3RhdHVzTGlzdDIwMjFFbnRyeSJ9LCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnoyNVpueVc5ZnZpUXJqanJQMXc4RnFHYSIsImlzc3VpbmdBdXRob3JpdHlOYW1lIjoiUlRBTyIsImlzc3VpbmdDb3VudHJ5IjoiU1ZLIiwibGVnYWxGb3JtIjoiSW5jIiwibGVnYWxOYW1lIjoiQUNNRSJ9LCJpZCI6InVybjp1dWlkOmYyMTkxODYzLTFlNzAtNDkzYS05Yjg1LWIyMGMwYzZkNDM5ZCIsImlzc3VhbmNlRGF0ZSI6IjIwMjQtMTAtMzFUMTk6MzY6MDMuNDQ0WiIsImlzc3VlZCI6IjIwMjQtMTAtMzFUMTk6MzY6MDMuNDQ0WiIsImlzc3VlciI6ImRpZDplYnNpOnpvOVY0RkNLOUNpS3VXUU1wdWJNekE0IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdHRlc3RhdGlvbiIsIk9yZ2FuaXphdGlvbmFsRGlnaXRhbElkZW50aWZpZXIiXSwidmFsaWRGcm9tIjoiMjAyNC0xMC0zMVQxOTozNjowMy40NDRaIiwidmFsaWRVbnRpbCI6IjIwMjQtMTEtMzBUMTk6MzY6MDMuNDQ0WiJ9fQ.HE46Lyy1EJCVsdW9Mi1OzpbI04awrdWC8m7xFpPHKvikA6ORuGR9I1UMUuqcAKxDy28H7jNOFSbM363xaANvfQ",
+      "type": "EnvelopedVerifiableCredential"
+    }
+  ]
+}
+```
 
 ## PoA Verification
 
